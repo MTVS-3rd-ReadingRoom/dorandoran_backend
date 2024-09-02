@@ -19,6 +19,11 @@ public class ApiController {
 
     @PostMapping("/send-data")
     public ResponseEntity<byte[]> receiveAndForwardData(@RequestBody byte[] data) {
+    // public ResponseEntity<byte[]> receiveAndForwardData(
+    //         @RequestParam("voice") MultipartFile data,
+    //         @RequestParam("user") Long userId,
+    //         @RequestParam("chat_room") Long chat_room
+    // ){
         // Forward data to AI server and get response
         byte[] responseData = aiService.sendBinaryDataAndGetResponse(data);
 
