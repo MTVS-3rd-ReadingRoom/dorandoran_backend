@@ -1,5 +1,6 @@
 package org.dorandoran.dorandoran_backend.summary;
 
+import org.dorandoran.dorandoran_backend.common.AiServerUrl;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -10,7 +11,6 @@ import org.springframework.web.client.RestTemplate;
 public class SummaryService {
 
     private final RestTemplate restTemplate;
-    private final String aiServerUrl = "https://sheepdog-bold-bulldog.ngrok-free.app/discussion_summary/discussion_summary";
 
     public SummaryService() {
         this.restTemplate = new RestTemplate();
@@ -26,7 +26,7 @@ public class SummaryService {
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
 
         return restTemplate.exchange(
-                aiServerUrl,
+                AiServerUrl.SUMMARY,
                 HttpMethod.POST,
                 requestEntity,
                 String.class
