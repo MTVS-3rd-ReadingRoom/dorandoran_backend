@@ -11,14 +11,14 @@ import java.util.Set;
 @Table
 @Getter
 @NoArgsConstructor
-public class Debateroom {
+public class DebateRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long no;
 
     @Column(nullable = false)
-    private String photon_debater_room_no;
+    private String photon_debate_room_no;
 
     @Column(nullable = false)
     private String topic;
@@ -26,18 +26,18 @@ public class Debateroom {
     @Column
     private String summary;
 
-    @OneToMany(mappedBy = "debateroom")
-    private Set<DebateroomUser> debateroomUsers;  // 컬렉션을 사용하여 여러 연관된 엔티티를 참조
+    @OneToMany(mappedBy = "debateroom", cascade = CascadeType.REMOVE)
+    private Set<DebateRoomUser> debateRoomUsers;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_no")  // 외래 키 컬럼 이름 설정
+    @JoinColumn(name = "book_no")
     private Book book;
 
-    public Debateroom(String photon_debater_room_no, String topic, String summary, Set<DebateroomUser> debateroomUsers, Book book) {
-        this.photon_debater_room_no = photon_debater_room_no;
+    public DebateRoom(String photon_debate_room_no, String topic, String summary, Set<DebateRoomUser> debateRoomUsers, Book book) {
+        this.photon_debate_room_no = photon_debate_room_no;
         this.topic = topic;
         this.summary = summary;
-        this.debateroomUsers = debateroomUsers;
+        this.debateRoomUsers = debateRoomUsers;
         this.book = book;
     }
 }

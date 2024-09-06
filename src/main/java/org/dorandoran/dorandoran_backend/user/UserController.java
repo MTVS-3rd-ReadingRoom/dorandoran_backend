@@ -1,13 +1,12 @@
 package org.dorandoran.dorandoran_backend.user;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.dorandoran.dorandoran_backend.customexception.ErrorResponseHandler;
 import org.dorandoran.dorandoran_backend.component.UserTokenStorage;
 import org.dorandoran.dorandoran_backend.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +38,16 @@ public class UserController {
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
-    public void signUp(@RequestParam("name") String name, @RequestParam("userId") String userId, @RequestParam("password") String password, @RequestParam("nickName") String nickName) {
+    public ResponseEntity<?> signUp(@RequestParam("name") String name, @RequestParam("userId") String userId, @RequestParam("password") String password, @RequestParam("nickName") String nickName) {
 
         UserInfo userInfo = new UserInfo(name, userId, BCrypt.hashpw(password, BCrypt.gensalt()), nickName, LocalDateTime.now());
 
-        userRepository.save(userInfo);
+        try{
+            userRepository.save(userInfo);
+            return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공");
+        }catch (Exception e){
+            return ErrorResponseHandler.get(HttpStatus.CONFLICT, "이미 존재하는 사용자입니다.");
+        }
     }
 
     @PostMapping("/login")
@@ -73,10 +77,7 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "로그아웃",
-            parameters = {
-            @Parameter(name = "Authorization", description = "토큰", in = ParameterIn.HEADER, required = true, schema = @Schema(type = "string", example = "your-api-key"))
-    })
+    @Operation(summary = "로그아웃")
     public void logout(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
 

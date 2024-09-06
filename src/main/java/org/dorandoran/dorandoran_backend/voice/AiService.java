@@ -87,7 +87,7 @@ public class AiService {
 
         // 요청 보내기
         try{
-            ResponseEntity<byte[]> response = restTemplate.exchange(AiServerUrl.TOPIC, HttpMethod.POST, requestEntity, byte[].class);
+            ResponseEntity<byte[]> response = restTemplate.exchange(AiServerUrl.TOPIC_VOICE, HttpMethod.POST, requestEntity, byte[].class);
             // 응답 상태 확인
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 byte[] fileContent = response.getBody();
