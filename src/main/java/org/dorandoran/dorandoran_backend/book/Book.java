@@ -3,7 +3,7 @@ package org.dorandoran.dorandoran_backend.book;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.dorandoran.dorandoran_backend.debateroom.Debateroom;
+import org.dorandoran.dorandoran_backend.debateroom.DebateRoom;
 
 import java.util.Set;
 
@@ -29,7 +29,7 @@ public class Book {
     private String category;
 
     @OneToMany(mappedBy = "book")
-    private Set<Debateroom> debaterooms;  // 컬렉션을 사용하여 여러 연관된 엔티티를 참조
+    private Set<DebateRoom> debateRooms;
 
     public Book(String isbn, String name, String author, String category) {
         this.isbn = isbn;

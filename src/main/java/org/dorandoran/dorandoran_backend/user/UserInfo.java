@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="user")
+@Table(name = "user", uniqueConstraints = @UniqueConstraint(columnNames = "id"))
 @Getter
 public class UserInfo {
     @Id

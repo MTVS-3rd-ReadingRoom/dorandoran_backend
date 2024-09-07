@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name="AI 요청 API")
 public class SummaryController {
 
+    private final SummaryService summaryService;
+
     @Autowired
-    private SummaryService summaryService;
+    public SummaryController(SummaryService summaryService) {
+        this.summaryService = summaryService;
+    }
 
     @PostMapping
     @Operation(summary = "전체 토론 요약")
