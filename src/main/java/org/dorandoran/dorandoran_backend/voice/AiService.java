@@ -1,9 +1,14 @@
 package org.dorandoran.dorandoran_backend.voice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dorandoran.dorandoran_backend.common.AiServerUrl;
+import org.dorandoran.dorandoran_backend.debateroom.DebateRoomRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
@@ -11,12 +16,21 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
+@Slf4j
 @Service
 public class AiService {
 
+    private final DebateRoomRepository debateRoomRepository;
 
-    public byte[] sendBinaryDataAndGetResponse(MultipartFile data, String userId, String chatRoom) {
+    @Autowired
+    public AiService(DebateRoomRepository debateRoomRepository) {
+        this.debateRoomRepository = debateRoomRepository;
+    }
+
+
+    public byte[] sendUserSpeaking(MultipartFile data, String userId, String chatRoom) {
         RestTemplate restTemplate = new RestTemplate();
 
         // Set headers
@@ -33,8 +47,7 @@ public class AiService {
                 }
             });
         } catch (IOException e) {
-            e.printStackTrace();
-            return null; // InputStream 생성 실패 시 처리
+            log.error("Failed to read file: " + e.getMessage());
         }
         body.add("user_id", userId);
         body.add("chat_room_id", chatRoom);
@@ -42,7 +55,6 @@ public class AiService {
         // Prepare request entity
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        // Send POST request and receive response as byte array
         try {
             ResponseEntity<byte[]> response = restTemplate.exchange(
                     AiServerUrl.DISCUSSION,
@@ -50,62 +62,41 @@ public class AiService {
                     requestEntity,
                     byte[].class
             );
-            // 성공 시 응답 처리
             if (response.getStatusCode().is2xxSuccessful()) {
-                // 정상 응답 처리
-                System.out.println("상태코드: " + response.getStatusCode());
                 return response.getBody();
-            } else {
-                // 서버에서 오류 응답 처리
-                System.out.println("서버 오류 응답: " + response.getStatusCode());
             }
-        } catch (HttpServerErrorException e) {
-            System.err.println("AI 요청 에러: " + e.getResponseBodyAsString());
-            e.printStackTrace();
-        } catch (Exception e) {
-            System.err.println("예상치 못한 에러 발생: " + e.getMessage());
-            e.printStackTrace();
+        }  catch (Exception e) {
+            log.error("sendUserSpeaking error: {}", e.getMessage());
         }
 
         return null;
     }
 
-    public byte[] sendChatRoom(String chatRoomId) {
+    public byte[] responseGetTopicVoice(String chatRoomId) {
         RestTemplate restTemplate = new RestTemplate();
 
-        // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        // 바디에 들어갈 데이터 설정
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("chat_room_id", chatRoomId);
 
-        System.out.println(chatRoomId);
-        // HttpEntity 생성
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
-        // 요청 보내기
         try{
             ResponseEntity<byte[]> response = restTemplate.exchange(AiServerUrl.TOPIC_VOICE, HttpMethod.POST, requestEntity, byte[].class);
-            // 응답 상태 확인
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                byte[] fileContent = response.getBody();
-
-                return fileContent;
+                return response.getBody();
             }
-        } catch (HttpServerErrorException e) {
-            System.err.println("AI 요청 에러: " + e.getResponseBodyAsString());
-            e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("예상치 못한 에러 발생: " + e.getMessage());
-            e.printStackTrace();
+            log.error("sendUserSpeaking error: {}", e.getMessage());
         }
 
         throw new RuntimeException("Failed to fetch audio data");
     }
 
-    public String sendChatRoomResponseText(String chatRoomId) {
+    @Transactional
+    public ResponseEntity<?> responseGetTopicText(String debateRoomNo) {
         RestTemplate restTemplate = new RestTemplate();
 
         // 헤더 설정
@@ -114,24 +105,24 @@ public class AiService {
 
         // 바디에 들어갈 데이터 설정
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("chat_room_id", chatRoomId);
+        body.add("chat_room_id", debateRoomNo);
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
         try{
-            ResponseEntity<String> response = restTemplate.exchange(AiServerUrl.TOPIC_TEXT, HttpMethod.POST, requestEntity, String.class);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    AiServerUrl.TOPIC_TEXT, HttpMethod.POST, requestEntity, new ParameterizedTypeReference<>() {
+                    });
             // 응답 상태 확인
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
+                log.info("topic: " + response.getBody().get("topic").toString());
+                debateRoomRepository.updateTopic(debateRoomNo, response.getBody().get("topic").toString());
+                // debateRoomRepository.updateTopic(Long.parseLong(debateRoomNo), response.getBody().get("topic").toString());
+                return response;
             }
-        } catch (HttpServerErrorException e) {
-            System.err.println("AI 요청 에러: " + e.getResponseBodyAsString());
-            e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("예상치 못한 에러 발생: " + e.getMessage());
-            e.printStackTrace();
+            log.error("sendUserSpeaking error: {}", e.getMessage());
         }
-
         throw new RuntimeException("Failed to fetch audio data");
     }
 }
