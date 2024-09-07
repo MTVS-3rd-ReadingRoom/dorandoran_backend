@@ -38,23 +38,11 @@ public class BookController {
     @Operation(summary = "전체 책 조회")
     @ApiResponse(responseCode = "200", description = "전체 책 조회 성공",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    array = @ArraySchema(schema = @Schema(example = "[\n" +
-                            "  {\n" +
-                            "    \"no\": 1,\n" +
-                            "    \"isbn\": \"string\",\n" +
-                            "    \"name\": \"string\",\n" +
-                            "    \"author\": \"string\",\n" +
-                            "    \"category\": \"string\"\n" +
-                            "  },\n" +
-                            "  {\n" +
-                            "    \"no\": 2,\n" +
-                            "    \"isbn\": \"string\",\n" +
-                            "    \"name\": \"string\",\n" +
-                            "    \"author\": \"string\",\n" +
-                            "    \"category\": \"string\"\n" +
-                            "  }\n" +
-                            "]"
-                    ))))
+                    schema = @Schema(
+                            type = "array",
+                            example = "[{\"no\":1,\"isbn\":\"1\",\"name\":\"1\",\"author\":\"김영하\",\"category\":\"문학\"}, {\"no\":2,\"isbn\":\"2\",\"name\":\"사랑과 전쟁\",\"author\":\"김영하\",\"category\":\"문학\"}]"
+                    )
+                    ))
     public List<BookDTO> getBook() {
         List<Book> books = bookRepository.findAll();
         List<BookDTO> bookDTO = books.stream()
