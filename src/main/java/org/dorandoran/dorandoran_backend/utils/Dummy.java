@@ -29,6 +29,9 @@ public class Dummy implements CommandLineRunner {
     private void book(){
         Book book = new Book("1", "1", "김영하", "문학");
         bookRepository.save(book);
+
+        Book book2 = new Book("2", "사랑과 전쟁", "김영하", "문학");
+        bookRepository.save(book2);
     }
 
     @Override

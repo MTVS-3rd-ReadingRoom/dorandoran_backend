@@ -1,6 +1,7 @@
 package org.dorandoran.dorandoran_backend.debateroom;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -39,10 +40,10 @@ public class DebateRoomController {
                     )
             )
     )
-    public ResponseEntity<?> createDebateRoom(@RequestParam("bookName") String bookName,
-                                @RequestParam("photonDebateRoomNo") String photonDebateRoomNo,
-                                @RequestParam("topic") String topic,
-                                @RequestParam("summary") String summary
+    public ResponseEntity<?> createDebateRoom(@Parameter(description = "책 이름", example = "사랑과 전쟁") @RequestParam("bookName") String bookName,
+                                              @Parameter(description = "포톤에서 생성된 토론방 식별값", example = "1") @RequestParam("photonDebateRoomNo") String photonDebateRoomNo
+                                              // @Parameter(description = "AI에서 생성된 주제", example = "사랑은 전쟁인가?") @RequestParam("topic") String topic,
+                                              // @Parameter(description = "요약글", example = "사랑은 전쟁이라는 결론") @RequestParam("summary") String summary
     ) {
         Book book = bookRepository.findByBookName(bookName);
         if (book == null){
@@ -50,7 +51,7 @@ public class DebateRoomController {
             responseBody.put("error", "책을 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
         }
-        DebateRoom debateroom = new DebateRoom(photonDebateRoomNo, topic, summary, null, book);
+        DebateRoom debateroom = new DebateRoom(photonDebateRoomNo, null, null, null, book);
         Long id = debateRoomRepository.save(debateroom).getNo();
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("roomId", id);

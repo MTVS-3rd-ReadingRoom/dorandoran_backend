@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 @RestController
 @RequestMapping("/api")
 @Tag(name = "AI 요청 API")
@@ -20,11 +18,11 @@ public class ApiController {
     @Autowired
     private AiService aiService;
 
-    @PostMapping("/send-data")
+    @PostMapping("/voice")
     @Operation(summary = "발언 학습")
     public ResponseEntity<byte[]> receiveAndForwardData(@RequestParam("file") MultipartFile data, @RequestParam("user_id") String userId, @RequestParam("chat_room_id") String chat_room) {
         // Forward data to AI server and get response
-        byte[] responseData = aiService.sendBinaryDataAndGetResponse(data, userId, chat_room);
+        byte[] responseData = aiService.sendUserSpeaking(data, userId, chat_room);
 
         // AI에서 테스트용 음성 파일 반환
         HttpHeaders headers = new HttpHeaders();
@@ -38,23 +36,23 @@ public class ApiController {
     @Operation(summary = "주제 추천(음성)")
     public ResponseEntity<?> sendChatRoom(@RequestParam("chat_room_id") String chat_room_id) {
         // Forward data to AI server and get response
-        byte[] responseData = aiService.sendChatRoom(chat_room_id);
+        byte[] responseData = aiService.responseGetTopicVoice(chat_room_id);
         // Set headers
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "audio/wav"); // or the appropriate MIME type for your audio
 
         return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
     }
+
     @PostMapping("/topic_suggest-text")
     @Operation(summary = "주제 추천(text)")
     public ResponseEntity<?> sendChatRoomResponseText(@RequestParam("chat_room_id") String chat_room_id) {
 
-        String responseData = aiService.sendChatRoomResponseText(chat_room_id);
+        ResponseEntity<?> response = aiService.responseGetTopicText(chat_room_id);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
 
-        return new ResponseEntity<>(responseData, headers, HttpStatus.OK);
+        return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
     }
-
 }

@@ -20,10 +20,11 @@ public class DebateRoom {
     @Column(nullable = false)
     private String photon_debate_room_no;
 
-    @Column(nullable = false)
+    @Column
     private String topic;
 
-    @Column
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String summary;
 
     @OneToMany(mappedBy = "debateroom", cascade = CascadeType.REMOVE)
