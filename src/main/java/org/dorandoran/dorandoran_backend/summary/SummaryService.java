@@ -7,6 +7,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
+
 @Service
 public class SummaryService {
 
@@ -16,7 +18,7 @@ public class SummaryService {
         this.restTemplate = new RestTemplate();
     }
 
-    public ResponseEntity<String> requestSummaryFromAIServer(String chatRoomId) {
+    public ResponseEntity<Map> requestSummaryFromAIServer(String chatRoomId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -29,7 +31,7 @@ public class SummaryService {
                 AiServerUrl.SUMMARY,
                 HttpMethod.POST,
                 requestEntity,
-                String.class
+                Map.class
         );
     }
 }
