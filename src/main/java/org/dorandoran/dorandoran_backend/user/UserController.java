@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.dorandoran.dorandoran_backend.customexception.ErrorResponseHandler;
@@ -59,29 +60,34 @@ public class UserController {
     public ResponseEntity<?> login(@RequestParam("userId") String userId, @RequestParam("password") String password) {
         UserInfo userInfo = userRepository.findByUserId(userId);
         if (userInfo == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패: 사용자 없음");
+            return ErrorResponseHandler.get(HttpStatus.UNAUTHORIZED, "사용자 없음");
         }
         if (!BCrypt.checkpw(password, userInfo.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패: 비밀번호 불일치");
+            return ErrorResponseHandler.get(HttpStatus.UNAUTHORIZED, "비밀번호 불일치");
         }
-        // JWT 생성
+
         String token = JwtUtil.generateToken(userId);
         userTokenStorage.storeToken(token,userInfo.getNo());
 
-        // 응답 헤더에 JWT 추가
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
 
-        // 로그인 성공 메시지와 함께 응답
         return ResponseEntity.ok().headers(headers).body("로그인 성공");
     }
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃")
-    public void logout(HttpServletRequest request) {
-        String authorizationHeader = request.getHeader("Authorization");
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "401", description = "로그인이 필요합니다", content = @Content(mediaType = "application/json", schema = @Schema(example = "{ \"error\": \"로그인이 필요합니다\" }"))),
+            @ApiResponse(responseCode = "200", description = "로그아웃 성공", content = @Content(mediaType = "text/plain", schema = @Schema(example = "로그아웃 성공")))})
 
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
         userTokenStorage.removeToken(authorizationHeader);
+        return ResponseEntity.ok("로그아웃 성공");
     }
 
 }

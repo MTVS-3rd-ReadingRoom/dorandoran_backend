@@ -36,6 +36,9 @@ public class UserTokenStorage {
 
     // 토큰 조회
     public Long getToken(String token) {
+        if (token == null) {
+            return null;
+        }
         return tokenStorage.get(removeBearer(token));
     }
 

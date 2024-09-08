@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dorandoran.dorandoran_backend.customexception.ErrorResponseHandler;
 import org.dorandoran.dorandoran_backend.component.UserTokenStorage;
 import org.dorandoran.dorandoran_backend.user.UserInfo;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Tag(name = "토론 API")
+@Slf4j
 public class DebateRoomUserController {
 
     private final DebateRoomUserRepository debateroomUserRepository;
@@ -42,7 +44,6 @@ public class DebateRoomUserController {
             @ApiResponse(responseCode = "201", description = "토론방 참가 성공", content = @Content(mediaType = "text/plain", schema = @Schema(example = "토론방 참가 성공")))})
     public ResponseEntity<?> joinDebateRoomUser(@RequestParam("debateRoomNo") Long debateRoomNo, HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
-
         Long userNo = userTokenStorage.getToken(authorizationHeader);
         if (userNo == null) {
             return ErrorResponseHandler.get(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
