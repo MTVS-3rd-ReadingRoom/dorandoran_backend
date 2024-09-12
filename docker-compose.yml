@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest  # 사용할 Redis 이미지
+    container_name: redis-container  # 컨테이너 이름
+    ports:
+      - "6379:6379"
+    restart: always
+
+  redisinsight:
+    image: redis/redisinsight:latest  # Redis Insight 이미지
+    container_name: redisinsight
+    ports:
+      - "5540:5540"  # 호스트의 8001 포트를 컨테이너의 8001 포트에 매핑
+    depends_on:
+      - redis  # Redis 서비스가 먼저 시작되도록 설정
