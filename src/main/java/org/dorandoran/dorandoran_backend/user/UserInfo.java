@@ -23,16 +23,16 @@ public class UserInfo {
     private String password;
 
     @Column(nullable = false)
-    private String nickName;
+    private String email;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public UserInfo(String name, String id, String password, String nickName, LocalDateTime createdAt) {
+    public UserInfo(String name, String id, String password, String email, LocalDateTime createdAt) {
         this.name = name;
         this.id = id;
         this.password = password;
-        this.nickName = nickName;
+        this.email = email;
         this.createdAt = createdAt;
     }
 

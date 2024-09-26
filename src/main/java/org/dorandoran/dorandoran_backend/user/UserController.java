@@ -39,9 +39,9 @@ public class UserController {
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
-    public ResponseEntity<?> signUp(@RequestParam("name") String name, @RequestParam("userId") String userId, @RequestParam("password") String password, @RequestParam("nickName") String nickName) {
+    public ResponseEntity<?> signUp(@RequestParam("name") String name, @RequestParam("userId") String userId, @RequestParam("password") String password, @RequestParam("email") String email) {
 
-        UserInfo userInfo = new UserInfo(name, userId, BCrypt.hashpw(password, BCrypt.gensalt()), nickName, LocalDateTime.now());
+        UserInfo userInfo = new UserInfo(name, userId, BCrypt.hashpw(password, BCrypt.gensalt()), email, LocalDateTime.now());
 
         try{
             userRepository.save(userInfo);

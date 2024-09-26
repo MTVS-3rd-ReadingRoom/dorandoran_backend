@@ -19,7 +19,7 @@ public interface DebateRoomRepository extends JpaRepository<DebateRoom, Long> {
 
     @Modifying
     @Query("update DebateRoom d set d.summary = ?2 where d.photon_debate_room_no = ?1")
-    void updateSummary(Long debateRoonNo, String summary);
+    void updateSummary(Long debateRoomNo, String summary);
 
 
     @Modifying

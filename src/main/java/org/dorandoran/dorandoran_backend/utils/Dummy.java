@@ -22,7 +22,7 @@ public class Dummy implements CommandLineRunner {
     }
 
     private void masterUser(){
-        UserInfo master = new UserInfo("1", "1", BCrypt.hashpw("1", BCrypt.gensalt()), "1", LocalDateTime.now());
+        UserInfo master = new UserInfo("1", "1", BCrypt.hashpw("1", BCrypt.gensalt()), "1@1", LocalDateTime.now());
         userRepository.save(master);
     }
 

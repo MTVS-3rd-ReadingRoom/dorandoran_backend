@@ -3,6 +3,7 @@ package org.dorandoran.dorandoran_backend.voice;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,18 @@ public class ApiController {
 
     @Autowired
     private AiService aiService;
+
+    @PostMapping("/tts/basic")
+    @Operation(summary = "TTS")
+    public ResponseEntity<byte[]> ttsBasic(@RequestParam("text") String text, HttpServletRequest request){
+        return aiService.ttsBasicService(text, request);
+    }
+
+    @PostMapping("/tts/topic-content")
+    @Operation(summary = "topic-content TTS")
+    public ResponseEntity<byte[]> ttsBasic(@RequestParam("topic") String topic, @RequestParam("content") String content){
+        return aiService.ttsTopicContentService(topic, content);
+    }
 
     @PostMapping("/voice")
     @Operation(summary = "발언 학습")

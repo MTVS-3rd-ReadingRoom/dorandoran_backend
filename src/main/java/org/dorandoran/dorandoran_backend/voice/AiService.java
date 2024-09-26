@@ -1,5 +1,6 @@
 package org.dorandoran.dorandoran_backend.voice;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dorandoran.dorandoran_backend.common.AiServerUrl;
 import org.dorandoran.dorandoran_backend.debateroom.DebateRoomRepository;
@@ -16,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Map;
 
 @Slf4j
@@ -29,6 +31,44 @@ public class AiService {
         this.debateRoomRepository = debateRoomRepository;
     }
 
+    public ResponseEntity<byte[]> ttsBasicService(String text, HttpServletRequest request){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+        requestBody.add("text", text);
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.exchange(
+                AiServerUrl.TTS_BASIC,
+                HttpMethod.POST,
+                requestEntity,
+                byte[].class
+        );
+    }
+
+    public ResponseEntity<byte[]> ttsTopicContentService(String topic, String content){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+        requestBody.add("topic", topic);
+        requestBody.add("content", content);
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.exchange(
+                AiServerUrl.TTS_TOPIC_CONTENT,
+                HttpMethod.POST,
+                requestEntity,
+                byte[].class
+        );
+    }
 
     public byte[] sendUserSpeaking(MultipartFile data, String userId, String chatRoom) {
         RestTemplate restTemplate = new RestTemplate();
