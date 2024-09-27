@@ -1,7 +1,7 @@
 @echo off
 
 if "%1"=="" (
-    docker-compose  down --rmi all
+    docker-compose  down
     docker-compose  up -d
 ) else (
     docker-compose down %1

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.dorandoran.dorandoran_backend.book.Book;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Set;
 
 @Entity
@@ -26,6 +28,10 @@ public class DebateRoom {
     @Lob
     @Column(columnDefinition = "TEXT")
     private String summary;
+
+    private LocalDate createdAtDate;
+    private LocalTime createdAtTime;
+
 
     @OneToMany(mappedBy = "debateroom", cascade = CascadeType.REMOVE)
     private Set<DebateRoomUser> debateRoomUsers;

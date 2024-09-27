@@ -1,5 +1,6 @@
 package org.dorandoran.dorandoran_backend.debateroom;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.dorandoran.dorandoran_backend.customexception.ErrorResponseHandler;
 import org.dorandoran.dorandoran_backend.component.UserTokenStorage;
+import org.dorandoran.dorandoran_backend.metric.MetricService;
+import org.dorandoran.dorandoran_backend.metric.RequestClassification;
 import org.dorandoran.dorandoran_backend.user.UserInfo;
 import org.dorandoran.dorandoran_backend.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +31,15 @@ public class DebateRoomUserController {
     private final UserTokenStorage userTokenStorage;
     private final DebateRoomRepository debateRoomRepository;
     private final UserRepository userRepository;
+    private final MetricService metricService;
 
     @Autowired
-    public DebateRoomUserController(DebateRoomUserRepository debateroomUserRepository, UserTokenStorage userTokenStorage, DebateRoomRepository debateRoomRepository, UserRepository userRepository) {
+    public DebateRoomUserController(DebateRoomUserRepository debateroomUserRepository, UserTokenStorage userTokenStorage, DebateRoomRepository debateRoomRepository, UserRepository userRepository, MetricService metricService) {
         this.debateroomUserRepository = debateroomUserRepository;
         this.userTokenStorage = userTokenStorage;
         this.debateRoomRepository = debateRoomRepository;
         this.userRepository = userRepository;
+        this.metricService = metricService;
     }
 
     @PostMapping("/api/debate-room-user")
@@ -46,6 +51,7 @@ public class DebateRoomUserController {
         String authorizationHeader = request.getHeader("Authorization");
         Long userNo = userTokenStorage.getToken(authorizationHeader);
         if (userNo == null) {
+            metricService.incrementErrorCount(RequestClassification.DEBATE_ROOM_USER.label(), "UserNotFound");
             return ErrorResponseHandler.get(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
 
@@ -55,8 +61,10 @@ public class DebateRoomUserController {
             DebateRoomUser debateroomUser = new DebateRoomUser(debateRoom, user);
             debateroomUserRepository.save(debateroomUser);
         } catch (Exception e) {
+            metricService.incrementErrorCount(RequestClassification.DEBATE_ROOM_USER.label(), "JoinDebateRoom");
             return ErrorResponseHandler.get(HttpStatus.BAD_REQUEST, e.getMessage());
         }
+        metricService.incrementRequestCount(RequestClassification.DEBATE_ROOM_USER.label(), "JoinDebateRoom");
         return ResponseEntity.status(HttpStatus.CREATED).body("토론방 참가 성공");
     }
 }

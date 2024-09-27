@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.dorandoran.dorandoran_backend.customexception.ErrorResponseHandler;
 import org.dorandoran.dorandoran_backend.component.UserTokenStorage;
+import org.dorandoran.dorandoran_backend.metric.MetricService;
+import org.dorandoran.dorandoran_backend.metric.RequestClassification;
 import org.dorandoran.dorandoran_backend.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -28,12 +30,13 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final UserTokenStorage userTokenStorage;
-
+    private final MetricService metricService;
 
     @Autowired
-    public UserController(UserRepository userRepository, UserTokenStorage userTokenStorage) {
+    public UserController(UserRepository userRepository, UserTokenStorage userTokenStorage, MetricService metricService) {
         this.userRepository = userRepository;
         this.userTokenStorage = userTokenStorage;
+        this.metricService = metricService;
     }
 
 
@@ -45,8 +48,10 @@ public class UserController {
 
         try{
             userRepository.save(userInfo);
+            metricService.incrementRequestCount(RequestClassification.USER.label(), "sign up");
             return ResponseEntity.status(HttpStatus.CREATED).body("회원가입 성공");
         }catch (Exception e){
+            metricService.incrementErrorCount(RequestClassification.USER.label(), "sign up");
             return ErrorResponseHandler.get(HttpStatus.CONFLICT, "이미 존재하는 사용자입니다.");
         }
     }
@@ -60,9 +65,11 @@ public class UserController {
     public ResponseEntity<?> login(@RequestParam("userId") String userId, @RequestParam("password") String password) {
         UserInfo userInfo = userRepository.findByUserId(userId);
         if (userInfo == null) {
+            metricService.incrementErrorCount(RequestClassification.USER.label(), "not found login");
             return ErrorResponseHandler.get(HttpStatus.UNAUTHORIZED, "사용자 없음");
         }
         if (!BCrypt.checkpw(password, userInfo.getPassword())) {
+            metricService.incrementErrorCount(RequestClassification.USER.label(), "password not match");
             return ErrorResponseHandler.get(HttpStatus.UNAUTHORIZED, "비밀번호 불일치");
         }
 
@@ -72,6 +79,7 @@ public class UserController {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
 
+        metricService.incrementRequestCount(RequestClassification.USER.label(), "login success");
         return ResponseEntity.ok().headers(headers).body("로그인 성공");
     }
 
@@ -84,9 +92,11 @@ public class UserController {
     public ResponseEntity<String> logout(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader == null) {
+            metricService.incrementErrorCount(RequestClassification.USER.label(), "not found token");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
         userTokenStorage.removeToken(authorizationHeader);
+        metricService.incrementRequestCount(RequestClassification.USER.label(), "logout success");
         return ResponseEntity.ok("로그아웃 성공");
     }
 

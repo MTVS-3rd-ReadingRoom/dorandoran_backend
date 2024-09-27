@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.dorandoran.dorandoran_backend.customexception.ErrorResponseHandler;
 import org.dorandoran.dorandoran_backend.book.Book;
 import org.dorandoran.dorandoran_backend.book.BookRepository;
+import org.dorandoran.dorandoran_backend.metric.MetricService;
+import org.dorandoran.dorandoran_backend.metric.RequestClassification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +24,12 @@ public class DebateRoomController {
 
     private final DebateRoomRepository debateRoomRepository;
     private final BookRepository bookRepository;
+    private final MetricService metricService;
 
-    public DebateRoomController(DebateRoomRepository debateRoomRepository, BookRepository bookRepository) {
+    public DebateRoomController(DebateRoomRepository debateRoomRepository, BookRepository bookRepository, MetricService metricService) {
         this.debateRoomRepository = debateRoomRepository;
         this.bookRepository = bookRepository;
+        this.metricService = metricService;
     }
 
     @PostMapping("/api/debate-room")
@@ -49,12 +53,14 @@ public class DebateRoomController {
         if (book == null){
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put("error", "책을 찾을 수 없습니다.");
+            metricService.incrementErrorCount(RequestClassification.DEBATE_ROOM.label(), "BookNotFound");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
         }
         DebateRoom debateroom = new DebateRoom(photonDebateRoomNo, null, null, null, book);
         Long id = debateRoomRepository.save(debateroom).getNo();
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("roomId", id);
+        metricService.incrementRequestCount(RequestClassification.DEBATE_ROOM.label(), "created");
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
     }
 
@@ -65,10 +71,17 @@ public class DebateRoomController {
     @DeleteMapping("/api/debate-room/{id}")
     public ResponseEntity<?> deleteDebateRoom(@PathVariable("id") Long debateRoomId) {
         try{
-            DebateRoom debateRoom = debateRoomRepository.findById(debateRoomId).orElseThrow(() -> new IllegalArgumentException("해당 토론방이 존재하지 않습니다."));
+
+            DebateRoom debateRoom = debateRoomRepository.findById(debateRoomId).orElseThrow(() -> {
+                metricService.incrementErrorCount(RequestClassification.DEBATE_ROOM.label(), "RoomNotFound");
+                return new IllegalArgumentException("해당 토론방이 존재하지 않습니다.");
+            });
             debateRoomRepository.delete(debateRoom);
+
+            metricService.incrementRequestCount(RequestClassification.DEBATE_ROOM.label(), "deleted");
             return ResponseEntity.status(HttpStatus.OK).body("토론방이 삭제되었습니다.");
         }catch (Exception e){
+            metricService.incrementErrorCount(RequestClassification.DEBATE_ROOM.label(), "RoomNotFound");
             return ErrorResponseHandler.get(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }

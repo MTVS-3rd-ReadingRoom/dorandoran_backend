@@ -22,22 +22,26 @@ public class Dummy implements CommandLineRunner {
     }
 
     private void masterUser(){
+
         UserInfo master = new UserInfo("1", "1", BCrypt.hashpw("1", BCrypt.gensalt()), "1@1", LocalDateTime.now());
         userRepository.save(master);
     }
 
     private void book(){
-        Book book = new Book("1", "1", "김영하", "문학");
+        Book book = new Book("1", "흥부와 놀부", "미상", "문학");
         bookRepository.save(book);
 
-        Book book2 = new Book("2", "사랑과 전쟁", "김영하", "문학");
+        Book book2 = new Book("2", "백설공주", "그림 형제", "문학");
         bookRepository.save(book2);
+
+        Book book3 = new Book("3", "운수 좋은 날", "현진건", "문학");
+        bookRepository.save(book3);
     }
 
     @Override
     public void run(String... args) throws Exception {
         System.out.println("RUN Command");
-        masterUser();
-        book();
+        // masterUser();
+        // book();
     }
 }

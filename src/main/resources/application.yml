@@ -21,7 +21,7 @@ spring:
       hibernate:
         format_sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
 
 management:
@@ -29,9 +29,6 @@ management:
     web:
       exposure:
         include: '*'
-#      base-path: system/actuator
-    server:
-      port: 8081
   endpoint:
     metrics:
       enabled: true

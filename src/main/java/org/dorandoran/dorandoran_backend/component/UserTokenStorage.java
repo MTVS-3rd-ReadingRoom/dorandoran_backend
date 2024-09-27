@@ -1,5 +1,6 @@
 package org.dorandoran.dorandoran_backend.component;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dorandoran.dorandoran_backend.utils.JwtUtil;
 import org.springframework.stereotype.Component;
 
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Slf4j
 public class UserTokenStorage {
 
     public final Map<String, Long> tokenStorage;
@@ -18,6 +20,7 @@ public class UserTokenStorage {
     // Bearer 제거
     public String removeBearer(String token) {
         if (token == null) {
+            log.error("removeToken is null");
             return null;
         }
         if (token.startsWith("Bearer ")) {
@@ -37,6 +40,7 @@ public class UserTokenStorage {
     // 토큰 조회
     public Long getToken(String token) {
         if (token == null) {
+            log.error("getToken error: is null");
             return null;
         }
         return tokenStorage.get(removeBearer(token));
